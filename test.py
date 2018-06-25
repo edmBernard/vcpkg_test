@@ -1,19 +1,25 @@
 import subprocess
 from path import Path
 
-Path("status").mkdir_p()
+def main(folder="status"):
 
-with open("vcpkg_status.md", 'w') as outfile:
-    outfile.write("| Library | x64-linux |\n")
-    outfile.write("| :-- | -- |\n")
+    Path(folder).mkdir_p()
 
-for lib in sorted(Path("vcpkg/ports").dirs("*")):
-    with open("vcpkg_status.md", 'a') as outfile:
-        ret = subprocess.run(["docker", "run", "--name", lib.basename(), "--rm", "base_vcpk", "./vcpkg", "install", lib.basename()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    with open("vcpkg_%s.md" % folder, 'w') as outfile:
+        outfile.write("| Library | x64-linux |\n")
+        outfile.write("| :-- | -- |\n")
 
-        outfile.write("| %s | %s |\n" % (lib.basename(), ["Failed", "Success"][ret.returncode == 0]))
+    for lib in sorted(Path("vcpkg/ports").dirs("*")):
+        with open("vcpkg_%s.md" % folder, 'a') as outfile:
+            ret = subprocess.run(["docker", "run", "--name", lib.basename(), "--rm", "base_vcpkg", "./vcpkg", "install", lib.basename()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        with open("status/%s_stderr.log" %  lib.basename(), 'wb') as stderrfile:
-            stderrfile.write(ret.stderr)
-        with open("status/%s_stdout.log" %  lib.basename(), 'wb') as stdoutfile:
-            stdoutfile.write(ret.stdout)
+            outfile.write("| %s | %s |\n" % (lib.basename(), ["Failed", "Success"][ret.returncode == 0]))
+
+            with open("%s/%s_stderr.log" % (folder, lib.basename()), 'wb') as stderrfile:
+                stderrfile.write(ret.stderr)
+            with open("%s/%s_stdout.log" %  (folder, lib.basename()), 'wb') as stdoutfile:
+                stdoutfile.write(ret.stdout)
+
+if __name__ == '__main__':
+    from fire import Fire
+    Fire(main)
