@@ -1,5 +1,7 @@
 # VCPKG Test
 
+Script to test vcpkg compilation libraries on ubuntu.
+It will build all libraries available in vcpkg. All build are isolated in a new container. Build outpur message are saved.
 
 # Build Docker base
 
